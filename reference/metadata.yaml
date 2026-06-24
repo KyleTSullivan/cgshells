@@ -1,0 +1,61 @@
+particle:
+  geometry:
+    dimension: 2
+    dcore: 1.0
+    t0: 1.0
+    wx: 56.0
+    r0: 34.0
+    Nbeads: 90
+    fraction: 0.3333333333333333
+  elasticity:
+    nu: 0.3
+    kh: 10000
+    kckh: 1.4657050877414468
+    kvkh: 1
+  interactions:
+    sigma: 1.0
+    epsilon: 0.012938329803772514
+    shift: -0.12246204830937302
+    ljcut: 5.0
+    wcacut: 1.0
+    softsigma: 5.0
+    softepsilon: 6.469164901886257e-10
+    softshift: 0
+    softcut: 5.612310241546865
+    pair_ints: repulsive
+simulation:
+  simtype: md
+  config: dispersed
+  nshells: 256
+  phi: 0.01
+  xlo: -846.640419540669
+  xhi: 846.640419540669
+  ylo: -846.640419540669
+  yhi: 846.640419540669
+  zlo: -0.5
+  zhi: 0.5
+  simbox_x: 1693.280839081338
+  simbox_y: 1693.280839081338
+  simbox_z: 1.0
+  thermofreq: 100
+  dumpfreq: 100
+  Tstart: 1.0
+  Tstop: 1.0
+  Tdamp: 10
+  seed: 15298
+  timestep: 0.0005
+  runsteps: 10000
+  minstyle: cg
+  etol: 1.0e-14
+  maxiter: 100000
+logistics:
+  computer: unity
+  jobname: ipykernel_launcher
+  simpath: test
+  load_simpath: none
+  nnodes: 1
+  cpus: 4
+  mem: 16
+  partition: cpu-preempt
+  requested_walltime: 00:10:00
+  run_counter: 0

@@ -1,0 +1,8 @@
+data/examples/2d/md/kh-1000.000/phi-0.050/kT-0.025
+data/examples/2d/md/kh-500.000/phi-0.050/kT-0.025
+data/examples/2d/md/kh-1000.000/phi-0.050/kT-0.100
+data/examples/2d/md/kh-500.000/phi-0.050/kT-0.100
+data/examples/2d/md/kh-1000.000/phi-0.100/kT-0.025
+data/examples/2d/md/kh-500.000/phi-0.100/kT-0.025
+data/examples/2d/md/kh-1000.000/phi-0.100/kT-0.100
+data/examples/2d/md/kh-500.000/phi-0.100/kT-0.100

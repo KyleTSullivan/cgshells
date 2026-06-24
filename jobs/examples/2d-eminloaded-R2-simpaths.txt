@@ -1,0 +1,10 @@
+data/examples/2d/emin/kh-500.00/nshells-2
+data/examples/2d/emin/kh-1000.00/nshells-2
+data/examples/2d/emin/kh-500.00/nshells-4
+data/examples/2d/emin/kh-1000.00/nshells-4
+data/examples/2d/emin/kh-500.00/nshells-6
+data/examples/2d/emin/kh-1000.00/nshells-6
+data/examples/2d/emin/kh-500.00/nshells-8
+data/examples/2d/emin/kh-1000.00/nshells-8
+data/examples/2d/emin/kh-500.00/nshells-10
+data/examples/2d/emin/kh-1000.00/nshells-10

@@ -1,0 +1,507 @@
+#!/usr/bin/env python3
+
+# getdists.py
+
+# given job simpath text file, will go each each job's directory, 
+    # read trajectory files and save aggregate size distributions to txt file
+
+### Import modules
+import fileinput
+import numpy as np
+import os
+import sys
+import gzip
+import subprocess
+import importlib
+import pathlib
+import shutil
+import yaml
+import datetime
+import pytz
+import time
+from scipy.optimize import curve_fit
+from scipy.spatial import KDTree
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import time
+cwd = os.getcwd()
+itop=cwd.find("cgshells")+len("cgshells")
+PROJECT_ROOT = cwd[:itop]
+sys.path.insert(0, PROJECT_ROOT )
+
+from utils.readsim import ReadSim
+# from utils.curvsim.v1.curvamer2d import Curvamer2D
+# from utils.curvsim.v1.curvamer3d import Curvamer3D
+import utils.run_manager as rm
+# from utils.run_manager import PROJECT_ROOT, lmpunity, lmplocal
+version = "v1"    # select which version of curvsim to use
+curvsim = importlib.import_module(f"utils.curvsim.{version}")
+Curvamer2D = rm.load_class(version, "curvamer2d", "Curvamer2D")
+Curvamer3D = rm.load_class(version, "curvamer3d", "Curvamer3D")
+versionpath = "/".join(curvsim.__name__.split("."))
+DATASCRIPTS = f"{versionpath}/DataScripts"    # location of compatible data scripts (relative to PROJECT_ROOT)
+
+
+rcut = 2.1
+eadh = -1
+ethresh = 0.2 * eadh
+skipsteps = 100000 # only calculate if timestep is divisible by skipsteps
+txtdir = f"jobs/dynamics2D/distributions"
+
+
+def find_midlayer_pt(result,frame):
+    nshells = np.max(result.dump_mol)    # number of molecules in simulation
+    molatoms = result.natoms/nshells    # number of atoms per molecule
+    box_x = result.xhi - result.xlo
+    box_y = result.yhi - result.ylo
+    rshift = 0.5*np.array(box_x,box_y)
+    
+    ri = []
+    vi = []
+    for i in np.arange(nshells):
+        mol = i+1
+        aid1 = int(molatoms/4 + (mol - 1)*molatoms)    # id of middle-most atom in bottom layer 
+        aid2 = int(3*molatoms/4 + (mol - 1)*molatoms)    # id of middle-most atom in bottom layer 
+        mask = (result.dump_mol[frame]==mol)    # molecule mask
+        a1mask = (result.dump_id[frame][mask]==aid1)
+        a2mask = (result.dump_id[frame][mask]==aid2)
+        r1 = np.array([result.dump_x[frame][mask][a1mask][0], # position of bottom atom
+                       result.dump_y[frame][mask][a1mask][0]])
+        r2 = np.array([result.dump_x[frame][mask][a2mask][0],    # position of top atom
+               result.dump_y[frame][mask][a2mask][0]])
+        r12 = r2 - r1 - 2*rshift * np.floor( (r2-r1)/(2*rshift) + 0.5)  # displacement vector (min image convention)
+        zdist = np.sqrt(np.sum((r12)**2))
+        vmol = (r12)/zdist    # molecule orientation vector
+        rmol = r1 + 0.5*zdist*vmol    # position of molecule center
+        # make sure molecule centers are in sim box
+        if rmol[0]>result.xhi:
+            rmol[0] = rmol[0]-box_x
+        elif rmol[0]<result.xlo:
+            rmol[0] = rmol[0]+box_x  
+        if rmol[1]>result.yhi:
+            rmol[1] = rmol[1]-box_y
+        elif rmol[1]<result.ylo:
+            rmol[1] = rmol[1]+box_y 
+        ri.append(rmol.tolist())
+        vi.append(vmol.tolist())
+    return np.array(ri), np.array(vi)
+
+def find_stacks(result,frame,rcut):
+    # returns list of aggregate stacks
+    #       list where each item is a list corresponding to one stack
+    #       each stack list contains molecule ids for each molecule in that stack
+    #       list of ids is in order from bottom to top of stack
+    # result must have read dumpfile already
+
+    nshells = int(np.max(result.dump_mol))
+    box_x = result.xhi - result.xlo
+    box_y = result.yhi - result.ylo
+    rshift = 0.5*np.array(box_x,box_y)    # shift points so that box starts at (0,0)
+    rm, vm = find_midlayer_pt(result,frame)
+    tree = KDTree(rm+rshift,boxsize=2*rshift)
+    
+    done = set()
+    aggs = []
+
+    for i in range(nshells):
+        if i in done:
+            continue
+
+        stack = [i]
+        done.add(i)
+
+        # ---- forward (top of stack) ----
+        current = i
+        while True:
+            neighbors = tree.query_ball_point((rm+rshift)[current], rcut)
+
+            candidates = []
+            for k in neighbors:
+                if k in done or k == current:
+                    continue
+                if np.dot(vm[current], vm[k]) <= 0:
+                    continue
+
+                djk = rm[k] - rm[current] - 2*rshift * np.floor((rm[k]-rm[current])/(2*rshift) + 0.5)
+                proj = np.dot(djk, vm[current])
+
+                if proj > 0:
+                    candidates.append((proj, k))
+
+            if not candidates:
+                break
+
+            # pick closest along direction
+            _, next_k = max(candidates)
+
+            stack.append(next_k)
+            done.add(next_k)
+            current = next_k
+
+        # ---- backward (bottom of stack) ----
+        current = i
+        while True:
+            neighbors = tree.query_ball_point((rm+rshift)[current], rcut)
+
+            candidates = []
+            for k in neighbors:
+                if k in done or k == current:
+                    continue
+                if np.dot(vm[current], vm[k]) <= 0:
+                    continue
+
+                djk = rm[k] - rm[current] - 2*rshift * np.floor((rm[k]-rm[current])/(2*rshift) + 0.5)
+                proj = np.dot(djk, vm[current])
+
+                if proj < 0:
+                    candidates.append((proj, k))
+
+            if not candidates:
+                break
+
+            _, next_k = min(candidates)
+
+            stack.insert(0, next_k)
+            done.add(next_k)
+            current = next_k
+
+        aggs.append(stack)
+            
+    return aggs
+
+def intershell_adhesion(result,frame,meta,molid1,molid2,rshift):
+    """
+    Calculate adhesive energy between two shells from trajectory file.
+    Must have read dump file into result instance first.
+    result: instance of ReadSim
+    frame: frame to analyze
+    meta: metadata (must be in dictionary form)
+    molid: lammps molecule id of shell (starts from 1)
+    rshift: displacement vector from bottom left corner to center of sim box
+            needed for determining distances according to minimum image convention
+    """
+    
+    pair_ints = meta["particle"]["interactions"]["pair_ints"]
+    soft_ints = meta["particle"]["interactions"]["soft_ints"]
+    sigma = meta["particle"]["interactions"]["sigma"]
+    epsilon = meta["particle"]["interactions"]["epsilon"]
+    shift = meta["particle"]["interactions"]["shift"]
+    ljcut = meta["particle"]["interactions"]["ljcut"]
+    wcacut = meta["particle"]["interactions"]["wcacut"]
+    if soft_ints == 0:
+        softsigma = 0
+        softepsilon = 0
+        softshift = 0
+        softcut = 0
+    else:
+        softsigma = meta["particle"]["interactions"]["softsigma"]
+        softepsilon = meta["particle"]["interactions"]["softepsilon"]
+        softshift = meta["particle"]["interactions"]["softshift"]
+        softcut = meta["particle"]["interactions"]["softcut"]
+    
+    mask1 = (result.dump_mol[frame]==molid1)
+    mask2 = (result.dump_mol[frame]==molid2)
+    type1list = result.dump_type[frame][mask1]
+    type2list = result.dump_type[frame][mask2]
+    x1list = result.dump_x[frame][mask1]
+    x2list = result.dump_x[frame][mask2]
+    y1list = result.dump_y[frame][mask1]
+    y2list = result.dump_y[frame][mask2]
+    
+    list1len = len(type1list)
+    list2len = len(type2list)
+    
+    if pair_ints == "1patch":
+        pair_flag = 1
+    if pair_ints == "patchy":
+        pair_flag = 3
+    
+    return ushell(list1len,list2len,type1list,type2list,x1list,x2list,y1list,y2list,rshift,
+          pair_flag,soft_ints,sigma,epsilon,shift,ljcut,wcacut,softsigma,softepsilon,softshift,softcut)
+
+def find_stacks_adh(aggs,result,frame,meta,rshift):
+    aggs_adh = []    # adhesive energy between shells in stacks (similar structure to aggs - bonds from bottom up of each stack)
+
+    for i in range(len(aggs)):
+        stacklist = aggs[i]
+        stacksize = len(aggs[i])
+        adhesivebonds = []
+
+        for j in range(len(stacklist)-1):
+            molidcenter = stacklist[j] + 1    # lammps id of mol
+
+            # adhesive energy with shell above
+            if j < (stacksize-1):
+                molidtop = stacklist[j+1] + 1    # lammps id of mol above in stack
+                eadhtop = intershell_adhesion(result,frame,meta,molidcenter,molidtop,rshift)
+            else:
+                eadhtop = 0
+
+            adhesivebonds.append(eadhtop)
+
+        #     # adhesive energy with shell below 
+        #     if j != 0:
+        #         molidbot = stacklist[j-1] + 1    # lammps id of mol below stack
+        #         eadhbot = intershell_adhesion(result,frame,meta,molidcenter,molidbot,rshift)
+        #     else:
+        #         eadhbot = 0
+
+        aggs_adh.append(adhesivebonds)
+        
+    return aggs_adh
+
+def split_substacks(aggs,aggs_adh,ethresh):
+    
+    """Split substacks up if intershell adhesive energy is above ethresh (a negative quantity)"""
+    
+    stacks = []
+    stacks_adh = []
+
+    for i in range(len(aggs)):
+        stack = aggs[i]
+        stack_adh = aggs_adh[i]
+
+        substacks = 1
+        istart = [0]
+        if len(stack_adh)>0:
+            for b in range(len(stack_adh)):
+                if stack_adh[b] > ethresh:
+                    substacks += 1
+                    istart.append(b+1)
+            istart.append(b+2)
+
+            for j in range(substacks):
+                stacks.append(stack[ istart[j]:istart[j+1] ] )
+                stacks_adh.append(stack_adh[ istart[j]:istart[j+1]-1])
+        else:
+            stacks.append(stack)
+            stacks_adh.append(stack_adh)
+    
+    return stacks, stacks_adh
+
+def count_stacks(aggs):
+    sizes = []
+    for stack in aggs:
+        sizes.append(len(stack))
+    sizes = np.array(sizes)
+    maxsize = np.max(sizes)
+    (hits, binedges, p) = plt.hist(sizes,bins=np.arange(0.5,maxsize+1.5,1))
+    
+    return (hits, maxsize)
+
+
+def write_dists(simpath):
+
+    tsteps = []
+    hits = []
+    maxsize = 0
+    meta = rm.read_metadata(f"{PROJECT_ROOT}/{simpath}")
+    nruns = meta['logistics']['run_counter']
+    wx = meta['particle']['geometry']['wx']
+    t0 = meta['particle']['geometry']['t0']
+    Nbeads = meta['particle']['geometry']['Nbeads']
+    r0 = meta['particle']['geometry']['r0']
+    nshells = meta['simulation']['nshells']
+    sigma = meta['particle']['interactions']['sigma']
+    pair_ints = meta['particle']['interactions']['pair_ints']
+    soft_ints = meta['particle']['interactions']['soft_ints']
+    kh = meta['particle']['elasticity']['kh']
+    phi = meta['simulation']['phi']
+    kT = meta['simulation']['Tstart']
+    damp = meta['simulation']['Tdamp']
+    if r0 == "flat":
+        txtfilename = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{np.abs(ethresh):0.3f}.txt"
+    else:
+        txtfilename = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0:0.5f}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{np.abs(ethresh):0.3f}.txt"
+    # loop over all trajectory files in this directory
+    for ni in np.arange(1,nruns+1,1):
+        tr1 = time.time()
+        print(f"Reading dumpfile trajectory{ni}.dump.gz ...")
+        result = ReadSim(f"{PROJECT_ROOT}/{simpath}")
+        result.read_dump(dumpname=f"trajectory{ni}.dump.gz",readall=True)
+        tr2 = time.time()
+        print(f"    Done. {rm.convert_time(tr2-tr1)}")
+        box_x = result.xhi - result.xlo
+        box_y = result.yhi - result.ylo
+        rshift = 0.5*np.array(box_x,box_y)
+        # loop over frames
+        print("Finding stacks ...")
+        for fi in np.arange(0,result.nframes):
+            if (result.tsteps[fi]%skipsteps) == 0:
+                try:
+                    tstep_fi = result.tsteps[fi]
+                    aggs = find_stacks(result,fi,rcut)
+                    aggs_adh = find_stacks_adh(aggs,result,fi,meta,rshift)
+                    stacks, stacks_adh = split_substacks(aggs,aggs_adh,ethresh)
+                    (hits_fi, maxsize_fi) = count_stacks(stacks)
+                    if maxsize_fi > maxsize:
+                        maxsize = maxsize_fi
+                    hits.append(hits_fi.tolist())
+                    tsteps.append(tstep_fi)
+                    print(f"Step = {tstep_fi}")
+                except:
+                    #pass
+                    tstep_fi = result.tsteps[fi]
+                    print(f"ERROR with Step = {tstep_fi}")
+
+    # format text file contents for this simulation (add zeros for missing stack counts)
+    darray = np.zeros([len(tsteps),maxsize+1],int)
+    darray[:,0] = tsteps
+    for i in np.arange(len(hits)):
+        for j in np.arange(len(hits[i])):
+            darray[i,j+1] = hits[i][j]
+
+    # write to text file
+    np.savetxt(f"{PROJECT_ROOT}/{txtdir}/{txtfilename}", darray, fmt="%d")
+
+
+def maintest():
+    t1 = time.time()
+    # fetch paths to simulation directories for job (feed simpath txt file as argument)
+    simpaths = [line.rstrip('\n') for line in fileinput.input()]
+    i = 0
+    for simpath in simpaths:
+        if i == 0:
+            write_dists(simpath)
+        i += 1
+    t2 = time.time()
+    print(rm.convert_time(t2-t1))
+
+def main():
+    t1 = time.time()
+    # fetch paths to simulation directories for job (feed simpath txt file as argument)
+    simpaths = [line.rstrip('\n') for line in fileinput.input()]
+    for simpath in simpaths:
+        write_dists(simpath)
+    t2 = time.time()
+    print(rm.convert_time(t2-t1))
+
+def mainclustertest():
+    nnodes = 1
+    ncpus = 1
+    mem = 30 #GB
+    partition = "cpu-preempt"
+    tlim_hrs = 2
+    tlim_min = 0
+    computer = "unity"
+
+    sbatchdir = f"{PROJECT_ROOT}/jobs/dynamics2D/sbatch_dists"
+
+    if not os.path.exists(sbatchdir):
+        os.makedirs(sbatchdir)
+
+    simpaths = [line.rstrip('\n') for line in fileinput.input()]
+    i = 0
+    for simpath in simpaths:
+        if i == 0:
+            meta = rm.read_metadata(f"{PROJECT_ROOT}/{simpath}")
+            # nruns = meta['logistics']['run_counter']
+            wx = meta['particle']['geometry']['wx']
+            t0 = meta['particle']['geometry']['t0']
+            Nbeads = meta['particle']['geometry']['Nbeads']
+            r0 = meta['particle']['geometry']['r0']
+            nshells = meta['simulation']['nshells']
+            sigma = meta['particle']['interactions']['sigma']
+            pair_ints = meta['particle']['interactions']['pair_ints']
+            soft_ints = meta['particle']['interactions']['soft_ints']
+            kh = meta['particle']['elasticity']['kh']
+            phi = meta['simulation']['phi']
+            kT = meta['simulation']['Tstart']
+            damp = meta['simulation']['Tdamp']
+            if r0 == "flat":
+                shname = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}"
+            else:
+                shname = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0:0.5f}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}"
+
+            # write_dists(simpath)
+            sbatchcontents = f"""#!/bin/bash
+#SBATCH -N {nnodes} # Number of Nodes
+#SBATCH -n {ncpus} # Number of Tasks (cpus)
+#SBATCH --mem={mem}G # Requested Memory
+#SBATCH -p {partition} # Partition
+#SBATCH --constraint=mpi
+#SBATCH -t {tlim_hrs:02d}:{tlim_min:02d}:00 # Job time limit
+#SBATCH -o {sbatchdir}/{shname}-%j.out # %j = job ID
+
+### load modules
+{rm.cluster_modules(computer)}
+
+python3 {PROJECT_ROOT}/tools/stack_distributions.py {simpath} {rcut} {skipsteps} {txtdir} {ethresh}
+
+"""
+            ### write sbatch file
+            with open(f"{sbatchdir}/{shname}.sh", "w") as f:
+                f.write(sbatchcontents)
+
+            ### submit sbatch file
+            print(f"Submitting distribution job {i+1}...")
+            sbatch = subprocess.run(['sbatch',f"{sbatchdir}/{shname}.sh"],universal_newlines = True)
+        i += 1
+
+def maincluster():
+    nnodes = 1
+    ncpus = 1
+    mem = 30 #GB
+    partition = "cpu-preempt"
+    tlim_hrs = 2
+    tlim_min = 0
+    computer = "unity"
+
+    sbatchdir = f"{PROJECT_ROOT}/jobs/dynamics2D/sbatch_dists"
+
+    if not os.path.exists(sbatchdir):
+        os.makedirs(sbatchdir)
+
+    simpaths = [line.rstrip('\n') for line in fileinput.input()]
+    i = 0
+    for simpath in simpaths:
+        meta = rm.read_metadata(f"{PROJECT_ROOT}/{simpath}")
+        # nruns = meta['logistics']['run_counter']
+        wx = meta['particle']['geometry']['wx']
+        t0 = meta['particle']['geometry']['t0']
+        Nbeads = meta['particle']['geometry']['Nbeads']
+        r0 = meta['particle']['geometry']['r0']
+        nshells = meta['simulation']['nshells']
+        sigma = meta['particle']['interactions']['sigma']
+        pair_ints = meta['particle']['interactions']['pair_ints']
+        soft_ints = meta['particle']['interactions']['soft_ints']
+        kh = meta['particle']['elasticity']['kh']
+        phi = meta['simulation']['phi']
+        kT = meta['simulation']['Tstart']
+        damp = meta['simulation']['Tdamp']
+        if r0 == "flat":
+            shname = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{np.abs(ethresh):0.3f}"
+        else:
+            shname = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0:0.5f}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{np.abs(ethresh):0.3f}"
+
+        # write_dists(simpath)
+        sbatchcontents = f"""#!/bin/bash
+#SBATCH -N {nnodes} # Number of Nodes
+#SBATCH -n {ncpus} # Number of Tasks (cpus)
+#SBATCH --mem={mem}G # Requested Memory
+#SBATCH -p {partition} # Partition
+#SBATCH -t {tlim_hrs:02d}:{tlim_min:02d}:00 # Job time limit
+#SBATCH -o {sbatchdir}/{shname}-%j.out # %j = job ID
+
+### load modules
+{rm.cluster_modules(computer)}
+
+python3 {PROJECT_ROOT}/tools/stack_distributions.py {simpath} {rcut} {skipsteps} {txtdir} {ethresh}
+
+"""
+        ### write sbatch file
+        with open(f"{sbatchdir}/{shname}.sh", "w") as f:
+            f.write(sbatchcontents)
+
+        ### submit sbatch file
+        print(f"Submitting distribution job {i+1}...")
+        sbatch = subprocess.run(['sbatch',f"{sbatchdir}/{shname}.sh"],universal_newlines = True)
+        i += 1
+                
+if __name__ == "__main__":
+    # maintest()
+    # main()
+    # mainclustertest()
+    maincluster()
+                
+                

@@ -1,0 +1,4 @@
+data/examples/2d/md/stackmelt/nshells-10/phi-0.100/kT-0.025
+data/examples/2d/md/stackmelt/nshells-10/phi-0.100/kT-0.050
+data/examples/2d/md/stackmelt/nshells-10/phi-0.100/kT-0.075
+data/examples/2d/md/stackmelt/nshells-10/phi-0.100/kT-0.100

@@ -1,0 +1,1 @@
+data/examples/2d/md/wx-4.900-t0-0.600-Nbeads-15/fraction-0.333/nshells-40/species-1/r0-6.500/phi-0.250/initial

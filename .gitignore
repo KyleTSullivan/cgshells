@@ -1,0 +1,22 @@
+
+# Mac
+*.DS_Store
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# lammps
+*.lammps
+*.lammps.gz
+*.dump
+*.dump.gz
+
+# directories
+data/
+tmp/
+jobs/*
+!jobs/examples/
+!jobs/examples/**
+reference/dev.ipynb

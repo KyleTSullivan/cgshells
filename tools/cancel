@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+
+# cancel.py
+
+# given job simpath text file, will go each each job's directory, 
+    # fetch the sbatch number and cancel them
+
+### Import modules
+import fileinput
+import numpy as np
+import os
+import sys
+import gzip
+import subprocess
+import importlib
+import pathlib
+import shutil
+import yaml
+import datetime
+import pytz
+import time
+from scipy.optimize import curve_fit
+cwd = os.getcwd()
+itop=cwd.find("cgshells/")+len("cgshells")
+PROJECT_ROOT = cwd[:itop]
+sys.path.insert(0, PROJECT_ROOT )
+
+from utils.readsim import ReadSim
+# from utils.curvsim.v1.curvamer2d import Curvamer2D
+# from utils.curvsim.v1.curvamer3d import Curvamer3D
+import utils.run_manager as rm
+# from utils.run_manager import PROJECT_ROOT, lmpunity, lmplocal
+version = "v1"    # select which version of curvsim to use
+curvsim = importlib.import_module(f"utils.curvsim.{version}")
+Curvamer2D = rm.load_class(version, "curvamer2d", "Curvamer2D")
+Curvamer3D = rm.load_class(version, "curvamer3d", "Curvamer3D")
+versionpath = "/".join(curvsim.__name__.split("."))
+DATASCRIPTS = f"{versionpath}/DataScripts"    # location of compatible data scripts (relative to PROJECT_ROOT)
+
+
+def cancel():
+    simpaths = [line.rstrip('\n') for line in fileinput.input()]
+    for simpath in simpaths:
+        meta = rm.read_metadata(f"{PROJECT_ROOT}/{simpath}")
+        try:
+            jobids = meta['logistics']['jobids']
+            subprocess.run(['scancel',jobids[-1])
+            #for jobid in jobids:
+            #    subprocess.run(['scancel',jobid])
+        except:
+            pass
+
+                
+if __name__ == "__main__":
+    cancel()
+                
+                
