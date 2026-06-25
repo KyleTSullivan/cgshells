@@ -1,0 +1,1 @@
+data/examples/2d/md/wx-4.900-t0-0.600-Nbeads-15/fraction-0.333/nshells-80/species-3/r0-[3.0, 7.5, 'flat']/sigma-0.25000-kh-1000.000/beta-0.333/phi-0.250/kT-0.040/damp-10.000
