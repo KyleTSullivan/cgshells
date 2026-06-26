@@ -75,6 +75,7 @@ def make_data(simpath):
     kvkh = meta['particle']['elasticity']['kvkh']
     datagz = meta['simulation']['datagz']
     ysep = meta['simulation']['ysep']
+    k_i = meta['simulation']['k_i']
     xlo = meta['simulation']['xlo']
     xhi = meta['simulation']['xhi']
     ylo = meta['simulation']['ylo']
@@ -142,7 +143,7 @@ def make_data(simpath):
         k_0 = 0
     else:
         k_0 = 1/r0
-    k_n = k_0
+    k_n = k_i
     rx_n = 0
     ymax = np.max(old.dump_y[-1])   # top of stack
     ry_n = ymax -t0/2 + ysep    # place new shell ysep above top of stack

@@ -134,7 +134,7 @@ for i in range(len(nshells_list)):
 
 
             ### Stacked config settings
-    #         k_i = 1.25 * k_0    # curvature of bottom shell in stack
+            k_i = 1 * k_0    # initial curvature of additional shell
     #         xlo = -2*wx
     #         xhi = 2*wx
     #         ylo = -4*r0
@@ -293,7 +293,8 @@ for i in range(len(nshells_list)):
                     'dumpbonds':dumpbonds,
                     'gridfreq':gridfreq,
                     'thresh':thresh,
-                    'ysep':ysep
+                    'ysep':ysep,
+                    'k_i':k_i
 
 
                 },
@@ -425,7 +426,7 @@ for i in range(len(nshells_list)):
             if simtype == "emin":
                 shname = f"nshells-{nshells}"    
             elif simtype == "md":
-                shname = f"nshells-{nshells}-phi-{phi:0.5f}-kT-{Tstart:0.5f}"  
+                shname = f"nshells-{nshells}-epsilon2-{epsilon2/epsilon:0.4f}-kT-{Tstart:0.5f}"  
             ncpus = int(px*py*pz)
             rm.run_job_cluster(computer,series_simpaths,jobcounter,nnodes,ncpus,
                                mem,partition,tlim_hrs,tlim_min,JOBDIR,JOB,shname,version,

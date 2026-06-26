@@ -1,1 +1,1 @@
-data/examples/2d/md/wx-4.900-t0-0.600-Nbeads-15/fraction-0.333/nshells_fict-50/species-2/r0-6.500/sigma-0.25000-kh-100.000/beta-0.333/phi-0.500/kT-0.020/damp-10.000/epsilon2-0.0000011208/stack-3
+data/examples/2d/md/wx-4.900-t0-0.600-Nbeads-15/fraction-0.333/nshells_fict-100/species-2/r0-6.500/ljexpand-beta-1.000/sigma-0.25000-kh-1000.000/phi-0.500/kT-0.010/damp-10.000/epsilon2-0.0369749651/stack-10
