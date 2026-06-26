@@ -74,6 +74,7 @@ def make_data(simpath):
     kckh = meta['particle']['elasticity']['kckh']
     kvkh = meta['particle']['elasticity']['kvkh']
     datagz = meta['simulation']['datagz']
+    ysep = meta['simulation']['ysep']
     xlo = meta['simulation']['xlo']
     xhi = meta['simulation']['xhi']
     ylo = meta['simulation']['ylo']
@@ -142,9 +143,10 @@ def make_data(simpath):
     else:
         k_0 = 1/r0
     k_n = k_0
-    rx_n = 1.5 * wx
-    ry_n = 0
-    theta = np.pi/2
+    rx_n = 0
+    ymax = np.max(old.dump_y[-1])   # top of stack
+    ry_n = ymax -t0/2 + ysep    # place new shell ysep above top of stack
+    theta = 0
     sim.make_curvamer(moltype,rx_n,ry_n,theta,wx,Nbeads,fraction,t0,k_0,k_n,kh,kckh,kvkh)
         
     ##### MAKE DATA FILE #####

@@ -18,5 +18,7 @@ data/
 tmp/
 jobs/*
 !jobs/examples/
-!jobs/examples/**
+jobs/examples/**
+!jobs/examples/**/*.py
 reference/dev.ipynb
+

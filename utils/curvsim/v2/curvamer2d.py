@@ -71,13 +71,19 @@ class Curvamer2D:
         leftmask = (xflat<(-w/2 + w*(1-fraction)/2))
         rightmask = (xflat>(w/2 - w*(1-fraction)/2))
         middlemask = (~leftmask) & (~rightmask)
-        atomtypes[bottommask*leftmask] = int(1 + 6*(moltype-1))
-        atomtypes[bottommask*rightmask] = int(5 + 6*(moltype-1))
-        atomtypes[bottommask*middlemask] = int(3 + 6*(moltype-1))
-        atomtypes[topmask*leftmask] = int(2 + 6*(moltype-1))
-        atomtypes[topmask*rightmask] = int(6 + 6*(moltype-1))
-        atomtypes[topmask*middlemask] = int(4 + 6*(moltype-1))
-        
+        atomtypes[bottommask*leftmask] = int(1 + 7*(moltype-1))
+        atomtypes[bottommask*rightmask] = int(5 + 7*(moltype-1))
+        atomtypes[bottommask*middlemask] = int(3 + 7*(moltype-1))
+        atomtypes[topmask*leftmask] = int(2 + 7*(moltype-1))
+        atomtypes[topmask*rightmask] = int(6 + 7*(moltype-1))
+        atomtypes[topmask*middlemask] = int(4 + 7*(moltype-1))
+        # repulsive ends
+        atomtypes[0][0] = int(7 + 7*(moltype-1))
+        atomtypes[0][-1] = int(7 + 7*(moltype-1))
+        atomtypes[1][0] = int(7 + 7*(moltype-1))
+        atomtypes[1][-1] = int(7 + 7*(moltype-1))
+
+ 
         # define atom positions - preferred shape
         xpreferred = []
         ypreferred = []
@@ -268,7 +274,7 @@ class Curvamer2D:
                 pass
             else:
                 self.atomtypes.append(atype)
-        self.natomtypes = self.nmoltypes * 6 #int(np.size(np.unique(self.atomtypes)))
+        self.natomtypes = self.nmoltypes * 7 #int(np.size(np.unique(self.atomtypes)))
         self.nbonds += nbonds
         self.nbondtypes += nbondtypes
         

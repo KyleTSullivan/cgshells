@@ -139,6 +139,9 @@ pair_coeff 2 4 lj/expand {softepsilon} {softsigma} {softshift} {softcut-softshif
 pair_coeff 4 4 lj/expand {softepsilon} {softsigma} {softshift} {softcut-softshift}
 pair_coeff 2 2 lj/expand {softepsilon} {softsigma} {softshift} {softcut-softshift}
 
+# repulsive ends
+pair_coeff * 7 lj/expand {epsilon} {sigma} {shift} {wcacut-shift}
+
 """
         else:
             inputcontents += f"""
@@ -159,6 +162,8 @@ pair_coeff 2 4 lj/expand {epsilon} {sigma} {shift} {wcacut-shift}
 pair_coeff 4 4 lj/expand {epsilon} {sigma} {shift} {wcacut-shift}
 pair_coeff 2 2 lj/expand {epsilon} {sigma} {shift} {wcacut-shift}
 
+# repulsive ends
+pair_coeff * 7 lj/expand {epsilon} {sigma} {shift} {wcacut-shift}
 """
 
 
@@ -202,7 +207,7 @@ pair_modify shift yes
             else:
                 if beta == 0:
                     epsilon_flanks = epsilon / (1-fraction)
-                    sigma_flanks = sigma / np.sqrt(1-fraction)
+                    sigma_flanks = sigma #/ np.sqrt(1-fraction)
                     shift_flanks = dcore - 2**(1/6)*sigma_flanks  
                     ljcut_flanks = 5*sigma_flanks              
                     
@@ -222,7 +227,7 @@ pair_modify shift yes
 """
                 elif beta == 1:
                     epsilon_mid = epsilon / (fraction)
-                    sigma_mid = sigma / np.sqrt(fraction)
+                    sigma_mid = sigma #/ np.sqrt(fraction)
                     shift_mid = dcore - 2**(1/6)*sigma_mid  
                     ljcut_mid = 5*sigma_mid 
                     
@@ -242,12 +247,12 @@ pair_modify shift yes
 """
                 else:
                     epsilon_mid = epsilon * beta / (fraction)
-                    sigma_mid = sigma * np.sqrt(beta / fraction)
+                    sigma_mid = sigma #* np.sqrt(beta / fraction)
                     shift_mid = dcore - 2**(1/6)*sigma_mid  
                     ljcut_mid = 5*sigma_mid 
                     
                     epsilon_flanks = epsilon * (1-beta) / (1-fraction)
-                    sigma_flanks = sigma * np.sqrt( (1-beta) / (1-fraction) )
+                    sigma_flanks = sigma #* np.sqrt( (1-beta) / (1-fraction) )
                     shift_flanks = dcore - 2**(1/6)*sigma_flanks  
                     ljcut_flanks = 5*sigma_flanks
                     

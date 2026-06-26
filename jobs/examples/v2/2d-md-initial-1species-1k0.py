@@ -250,6 +250,7 @@ for i in range(len(phi_list)):
                     'interactions':{
                         'nspecies':nspecies,
                         'pair_ints':pair_ints,
+			'beta':beta,
                         'soft_ints':int(soft_ints),
                         'sigma':sigma,
                         'epsilon':epsilon,

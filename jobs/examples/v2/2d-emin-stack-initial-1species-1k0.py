@@ -53,7 +53,7 @@ rm.make_simpaths_file(JOBDIR,JOB)     # make empty status file for this job
 ################################
 
 nshells_list = [1,2,3,4,5,6,7,8,9,10]    # independent jobs that run in parallel (must be list)
-kh_list = [100,200]    # jobs that will run in series (must be list)
+kh_list = [1000]    # jobs that will run in series (must be list)
 
 jobcounter = 0
 for i in range(len(nshells_list)):   
@@ -100,12 +100,13 @@ for i in range(len(nshells_list)):
         ### Interactions
         nspecies = 1
         pair_ints = "beta" #"none", "repulsive", "beta"
-        beta = fraction # fraction of total attractive energy that comes from mid patch;
+        #beta = fraction # fraction of total attractive energy that comes from mid patch;
                             # 0 = outer flanks only; 1 = mid patch only (previous "1patch"); 
                             # fraction = evenly split between mid and flanks (previous "patchy")
+        beta = 1
         soft_ints = False
         sigma = 0.25*dcore
-        epsilon = 0.11208258168520176
+        epsilon = 0.03697496505294636
         shift = dcore - 2**(1/6)*sigma     # shift factor to make sure lj minimum is at dcore
         ljcut = 5*sigma #t0 + 2*dcore               # cutoff distance for attractive lj potential
         wcacut = dcore    # cutoff distance for repulsive wca potential
@@ -139,8 +140,8 @@ for i in range(len(nshells_list)):
             k_i = float( k_0 * (1 - (1/hstack) + np.sqrt( 1 + (1 / (hstack**2)) ) ) )   
         xlo = -2*wx
         xhi = 2*wx
-        ylo = -4*r0
-        yhi = nshells*r0 + 4*r0
+        ylo = -4*(t0+dcore)
+        yhi = nshells*(t0+dcore) + 4*(t0+dcore)
         zlo = -0.5
         zhi = 0.5
 
@@ -257,6 +258,7 @@ for i in range(len(nshells_list)):
                 'interactions':{
                     'nspecies':nspecies,
                     'pair_ints':pair_ints,
+                    'beta':beta,
                     'soft_ints':int(soft_ints),
                     'sigma':sigma,
                     'epsilon':epsilon,

@@ -51,13 +51,14 @@ rm.make_simpaths_file(JOBDIR,JOB)     # make empty status file for this job
 ##### SIMULATION VARIABLES #####
 ################################
 
-phi_list = [0.5]    # independent jobs that run in parallel (must be list)
-temp_list = [0.02]    # more independent jobs that run in parallel (must be list)
-kh_list = [100]    # jobs that will run in series (must be list)
+nshells_list = [10]  # independent jobs that run in parallel (must be list)
+epsilon2_list = [1.0]  # as a fraction of epsilon (0.5 means epsilon2 = 0.5* epsilon)  # more independent jobs that run in parallel (must be list)
+
+kh_list = [1000]    # jobs that will run in series (must be list)
 
 jobcounter = 0
-for i in range(len(phi_list)):   
-    for j in range(len(temp_list)):
+for i in range(len(nshells_list)):   
+    for j in range(len(epsilon2_list)):
 
         simcounter = 0
         jobcounter += 1
@@ -102,12 +103,14 @@ for i in range(len(phi_list)):
             nspecies = 2
             nspecies_load = 1
             pair_ints = "beta" #"none", "repulsive", "beta"
-            beta = fraction # fraction of total attractive energy that comes from mid patch;
+            #beta = fraction # fraction of total attractive energy that comes from mid patch;
                                 # 0 = outer flanks only; 1 = mid patch only (previous "1patch"); 
                                 # fraction = evenly split between mid and flanks (previous "patchy")
+            beta = 1
             soft_ints = False
             sigma = 0.25*dcore
-            epsilon = 0.11208258168520176
+            epsilon = 0.03697496505294636
+            epsilon2 = epsilon2_list[j]*epsilon
             shift = dcore - 2**(1/6)*sigma     # shift factor to make sure lj minimum is at dcore
             ljcut = 5*sigma #t0 + 2*dcore               # cutoff distance for attractive lj potential
             wcacut = dcore    # cutoff distance for repulsive wca potential
@@ -115,14 +118,15 @@ for i in range(len(phi_list)):
             softepsilon = 5e-8 * epsilon
             softshift = 0 #softcore - 2**(1/6)*softsigma
             softcut = 2**(1/6) * softsigma
-            epsilon2 = epsilon/1e5
 
             ##### SIMULATION #####
+            ysep = 2*(t0+dcore)  # center-center separation distance between top most shell and new shell
+
             config = "dispersed" #"dispersed", "lattice", or "stacked"
             simtype = "md"
-            datascript = "stack-plus1"    # script to make data file with, NO .py EXTENSION, "stack", "load", or "lattice"
-            inputscript = "2d-1species"    # script to make lammps input file, NO .py EXTENSION   
-            nshells = 3    # size of stack to import (total shells is nshells + 1)
+            datascript = "stack-plus1"    # script to make data file with, NO .py EXTENSION, "stack", "load", or "lattice", etc.
+            inputscript = "2d-2species-ljexpand"    # script to make lammps input file, NO .py EXTENSION   
+            nshells = nshells_list[i]    # size of stack to import (total shells is nshells + 1)
             datagz = True
             trajgz = True
             dumpbonds = False    # whether to calculate and dump bond data
@@ -146,8 +150,8 @@ for i in range(len(phi_list)):
 #             theta = "random"   # orientation of shells in lattice (0 = concave down, np.pi = concave up, "random" = randomly up or down)
 
             ### Dispersed config settings
-            nshells_fict = 50    # phi = 1 box volume as same volume as nshells_fict shells (smaller box for smaller nshells_fict)
-            phi = phi_list[i]    # concentration of molecules (area fraction) - only for MD
+            nshells_fict = 100    # phi = 1 box volume has same vol. as nshells_fict shells (smaller box for smaller nshells_fict)
+            phi = 0.5    # concentration of molecules (area fraction) - only for MD
             v0 = (wx + dcore) * (t0 + dcore)    # approx area of monomer
             lbox = np.sqrt(nshells_fict * v0 / phi)    # side length of (square) sim box to give proper concentration
             xlo = -lbox/2
@@ -161,10 +165,10 @@ for i in range(len(phi_list)):
             # load stack state from emin sim with these params
             minstyle = "cg"
             etol = 1e-12
-            maxiter = 100000
+            #maxiter = 100000
 
             # md sim params
-            Tstart = temp_list[j]
+            Tstart = 0.01 
             Tstop = Tstart
             damp = 10
             seed = 15298
@@ -178,7 +182,7 @@ for i in range(len(phi_list)):
 
             ### Simulation Directories
             delete_existing = True    # if True, deletes simulation directory (and .sh files) if it exists before creating again
-            simpath = f"data/examples/{int(dimension)}d/md/wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}/fraction-{fraction:0.3f}/nshells_fict-{nshells_fict}/species-{int(nspecies)}/r0-{r0string}/sigma-{sigma:0.5f}-kh-{kh:0.3f}/beta-{beta:0.3f}/phi-{phi:0.3f}/kT-{Tstart:0.3f}/damp-{damp:0.3f}/epsilon2-{epsilon2:0.10f}/stack-{nshells}" # path to simulation directory (relative to PROJECT_ROOT)
+            simpath = f"data/examples/{int(dimension)}d/md/wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}/fraction-{fraction:0.3f}/nshells_fict-{nshells_fict}/species-{int(nspecies)}/r0-{r0string}/ljexpand-beta-{beta:0.3f}/sigma-{sigma:0.5f}-kh-{kh:0.3f}/phi-{phi:0.3f}/kT-{Tstart:0.3f}/damp-{damp:0.3f}/stack-{nshells}/epsilon2-{epsilon2/epsilon:0.10f}" # path to simulation directory (relative to PROJECT_ROOT)
             #load_simpath = False # location of simulation to load in (set to False if not loading in state)
             simtype_load = "emin"
             load_simpath = f"data/examples/{int(dimension)}d/{simtype_load}/wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}/fraction-{fraction:0.3f}/species-{int(nspecies_load)}/r0-{r0string}/sigma-{sigma:0.5f}/kh-{kh:0.5f}/nshells-{nshells}/{minstyle}-{int(np.abs(np.log10(etol)))}"  # location of simulation to load in (set to False if not loading in state)
@@ -262,6 +266,7 @@ for i in range(len(phi_list)):
                         'shift':shift,
                         'ljcut':ljcut,
                         'wcacut':wcacut,
+                        'beta':beta
 
                     },
                 },
@@ -287,7 +292,8 @@ for i in range(len(phi_list)):
                     'trajgz':trajgz,
                     'dumpbonds':dumpbonds,
                     'gridfreq':gridfreq,
-                    'thresh':thresh
+                    'thresh':thresh,
+                    'ysep':ysep
 
 
                 },

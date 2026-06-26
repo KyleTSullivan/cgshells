@@ -21,7 +21,7 @@ import utils.run_manager as rm
 from utils.run_manager import PROJECT_ROOT, lmpunity, lmplocal
 from utils.readsim import ReadSim
 
-version = "v1"    # select which version of curvsim to use
+version = "v2"    # select which version of curvsim to use
 curvsim = importlib.import_module(f"utils.curvsim.{version}")
 Curvamer2D = rm.load_class(version, "curvamer2d", "Curvamer2D")
 Curvamer3D = rm.load_class(version, "curvamer3d", "Curvamer3D")
@@ -86,8 +86,9 @@ def make_data(simpath):
             m = n
         elif orientation == 'incorrect2':
             m = n+1
-        
-        sim.make_curvamer(rx_n,ry_n,m*theta,wx,Nbeads,fraction,t0,k_0,k_n,kh,kckh,kvkh)
+
+        moltype_i = 1
+        sim.make_curvamer(moltype_i,rx_n,ry_n,m*theta,wx,Nbeads,fraction,t0,k_0,k_n,kh,kckh,kvkh)
 
     ##### MAKE DATA FILE #####
     print("...making data file")
