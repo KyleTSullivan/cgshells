@@ -28,25 +28,25 @@ DATASCRIPTS = f"{PROJECT_ROOT}/{versionpath}/DataScripts"    # location of compa
 INPUTSCRIPTS = f"{PROJECT_ROOT}/{versionpath}/InputScripts"    # location of compatible data scripts
 
 
-def latest_traj(files):
-    # collect trajectory files
-    trajectories = []
-    for f in files:
-        if f[:10] == "trajectory":
-            trajectories.append(f)
+# def latest_traj(files):
+#     # collect trajectory files
+#     trajectories = []
+#     for f in files:
+#         if f[:10] == "trajectory":
+#             trajectories.append(f)
 
-    # find latest trajectory file
-    tlast = 0
-    restart = 0
-    for i in np.arange(len(trajectories)):
-        traj = trajectories[i]
-        p = traj.index(".")
-        n = int(traj[10:p])
-        if n > restart:
-            tlast = i
-            restart = n
-    dumpname = trajectories[tlast]
-    return dumpname
+#     # find latest trajectory file
+#     tlast = 0
+#     restart = 0
+#     for i in np.arange(len(trajectories)):
+#         traj = trajectories[i]
+#         p = traj.index(".")
+#         n = int(traj[10:p])
+#         if n > restart:
+#             tlast = i
+#             restart = n
+#     dumpname = trajectories[tlast]
+#     return dumpname
 
 def make_data(simpath):
 
@@ -86,8 +86,8 @@ def make_data(simpath):
     old = ReadSim(f"{PROJECT_ROOT}/{load_simpath}")
     
     if load_dumpname == -1:    # choose latest trajectory file
-        files = old.files
-        load_dumpname = latest_traj(files)
+#         files = old.files
+        load_dumpname = old.latest_file()
     
     # test whether to read all frames from trajectory file or just first/last
     if (load_frame==-1)or(load_frame==0):
