@@ -78,7 +78,7 @@ for i in range(len(nshells_list)):
         dcore = 1.0    # hard core diameter of beads (dcore approx thickness of one DNA helix 3.5nm)
         t0 = 0.6 * dcore    # structural thickness
         wx = 4.9 * dcore    # shell width (arclength along midline)
-        r0 = 6.5 * dcore   # set to "flat" for particles with zero curvature
+        r0 = "flat" #6.5 * dcore   # set to "flat" for particles with zero curvature
         Nbeads = 15    # number of beads per layer (2Nbeads is beads per curvamer)
         fraction = 1/3    # middle patch of beads has width = fraction * wx
 
@@ -140,8 +140,8 @@ for i in range(len(nshells_list)):
             k_i = float( k_0 * (1 - (1/hstack) + np.sqrt( 1 + (1 / (hstack**2)) ) ) )   
         xlo = -2*wx
         xhi = 2*wx
-        ylo = -4*(t0+dcore)
-        yhi = nshells*(t0+dcore) + 4*(t0+dcore)
+        ylo = -nshells*(t0+dcore)/2 - 4*(t0+dcore)
+        yhi = nshells*(t0+dcore)/2 + 4*(t0+dcore)
         zlo = -0.5
         zhi = 0.5
 

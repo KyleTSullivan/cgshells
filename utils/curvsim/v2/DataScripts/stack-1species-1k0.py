@@ -63,7 +63,7 @@ def make_data(simpath):
     print("...preparing new simulation data")
     theta = 0    # orientation of stack (0 = concave down)
     x_i = 0    # location of bottom molecule
-    y_i = -nshells*(t0+dcore)/2
+    y_i = -nshells*(t0+dcore)/2 + 0.5*(t0+dcore)
     sim = Curvamer2D(directory=f"{PROJECT_ROOT}/{simpath}")
     for n in range(int(nshells)):
 
