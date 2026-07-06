@@ -22,4 +22,5 @@ jobs/examples/**
 !jobs/examples/**/*.py
 jobs/examples/**/*.txt
 reference/dev.ipynb
-
+notebooks/*
+!notebooks/*.ipynb
