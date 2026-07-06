@@ -1,4 +1,8 @@
-# stack-plus1.py
+# stack-convert.py
+
+# for use in free energy calculation
+# converts nth particle in stack to mol type 2
+# can modulate attractive strength for thermodynamic integration
 
 import os
 import sys
@@ -74,15 +78,18 @@ def make_data(simpath):
     kckh = meta['particle']['elasticity']['kckh']
     kvkh = meta['particle']['elasticity']['kvkh']
     datagz = meta['simulation']['datagz']
-    ysep = meta['simulation']['ysep']
-    k_i = meta['simulation']['k_i']
+    nconvert = meta['simulation']['nconvert']
     xlo = meta['simulation']['xlo']
     xhi = meta['simulation']['xhi']
     ylo = meta['simulation']['ylo']
     yhi = meta['simulation']['yhi']
     
     ##### LOAD OLD DATA #####
-    print("Using load.py to create data file...")
+    try:
+        ni = sys.argv[0].rindex('/') + 1
+    except:
+        ni = 0
+    print(f"Using {sys.argv[0][ni:]} to create data file...")
     print("nshells = {}".format(nshells))
     
     old = ReadSim(f"{PROJECT_ROOT}/{load_simpath}")
@@ -105,15 +112,24 @@ def make_data(simpath):
     curv_old = []    # preferred curvature
     moltype_old = []
     for i in np.arange(old.natoms):
+        if old.dump_mol[load_frame][i] == nconvert:
+            old_atomtype = old.dump_type[load_frame][i]
+            moltype = 2
+            new_atomtype = int(old_atomtype + 7*(moltype-1))
+        else:
+            old_atomtype = old.dump_type[load_frame][i]
+            moltype = old.dump_i_moltype[load_frame][i]
+            new_atomtype = int(old_atomtype + 7*(moltype-1))
+            
         data_atoms_old.append("{} {} {} {} {} {}".format(
-            int(old.dump_id[load_frame][i]),int(old.dump_mol[load_frame][i]),int(old.dump_type[load_frame][i]),
+            int(old.dump_id[load_frame][i]),int(old.dump_mol[load_frame][i]),new_atomtype,
             old.dump_x[load_frame][i],old.dump_y[load_frame][i],old.dump_z[load_frame][i]))
         if old.dump_mol[load_frame][i] in nmol_old:
             pass
         else:
             nmol_old.append(int(old.dump_mol[load_frame][i]))
             curv_old.append(old.dump_d_curv[load_frame][i])
-            moltype_old.append(int(old.dump_i_moltype[load_frame][i]))
+            moltype_old.append(int(moltype))
     
     ##### MAKE NEW CURVAMERS #####
 
@@ -129,26 +145,16 @@ def make_data(simpath):
         ry_n = 0    # y pos of nth molecule
         k_n = 0    # initial curvature
         k_0 = curv_old[n]
-        moltype = moltype_old[n]
+        if n+1 == nconvert:
+            moltype = 2
+        else:
+            moltype = moltype_old[n]
         sim.make_curvamer(moltype,rx_n,ry_n,theta,wx,Nbeads,fraction,t0,k_0,k_n,kh,kckh,kvkh)
 
     ##### REPLACE POSITION DATA #####
     print("...updating atom positions")
     sim.data_atoms = data_atoms_old  
     
-    ##### CREATE ADDITIONAL CURVAMER
-    moltype = moltype_old[-1]
-    r0 = meta['particle']['geometry']['r0']
-    if r0 == "flat":
-        k_0 = 0
-    else:
-        k_0 = 1/r0
-    k_n = k_i
-    rx_n = 0
-    ymax = np.max(old.dump_y[-1])   # top of stack
-    ry_n = ymax -t0/2 + ysep    # place new shell ysep above top of stack
-    theta = 0
-    sim.make_curvamer(moltype,rx_n,ry_n,theta,wx,Nbeads,fraction,t0,k_0,k_n,kh,kckh,kvkh)
         
     ##### MAKE DATA FILE #####
     print("...making data file")
