@@ -79,7 +79,7 @@ class ReadSim:
         opened.close()
         
         # thermo output
-        start_index = in_text.index("Step")
+        start_index = in_text.index("Step ")
         end_index = in_text.index("\n",start_index)
         self.thermo_labels = in_text[start_index : end_index].split() 
         nlabels = len(self.thermo_labels)
@@ -93,9 +93,11 @@ class ReadSim:
                 mask[i] = 0
             if thermostring[i]=='':
                 mask[i] = 0
+            if thermostring[i][:7]=="colvars":
+                mask[i] = 0
         mask = np.array(mask,dtype = bool)
         thermo = []
-        for i in np.arange(len(np.array(thermostring)[mask])):
+        for i in np.arange(len(np.array(thermostring,dtype=object)[mask])):
             thermo.append(np.fromstring(np.array(thermostring)[mask][i],sep=" ").tolist())
         self.thermo = np.array(thermo)
         
