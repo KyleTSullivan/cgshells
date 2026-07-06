@@ -90,8 +90,8 @@ class Curvamer2D:
         if k_0 != 0:
             r_0 = 1/k_0
             angle = w*k_0    # angular spread of curvamer
-            thetaleft = np.pi/2 - angle/2    # left angle
-            thetaright = np.pi/2 + angle/2   # right angle
+            thetaleft = np.pi/2 + angle/2    # left angle
+            thetaright = np.pi/2 - angle/2   # right angle
             atomangles = np.linspace(thetaleft,thetaright,N)
             rb = r_0 - t0/2    # radius of curvature of bottom layer
             rt = r_0 + t0/2    # radius of curvature of top layer
@@ -140,8 +140,8 @@ class Curvamer2D:
         if k_i != 0:
             r_i = 1/k_i
             angle = w*k_i    # angular spread of curvamer
-            thetaleft = np.pi/2 - angle/2    # left angle
-            thetaright = np.pi/2 + angle/2   # right angle
+            thetaleft = np.pi/2 + angle/2    # left angle
+            thetaright = np.pi/2 - angle/2   # right angle
             atomangles = np.linspace(thetaleft,thetaright,N)
             rb = r_i - t0/2    # radius of curvature of bottom layer
             rt = r_i + t0/2    # radius of curvature of top layer
