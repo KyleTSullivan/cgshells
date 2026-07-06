@@ -18,8 +18,6 @@ data/
 tmp/
 jobs/*
 !jobs/examples/
-jobs/examples/**
-!jobs/examples/**/*.py
 jobs/examples/**/*.txt
 reference/dev.ipynb
 notebooks/*
