@@ -296,7 +296,7 @@ fix 2 all nve
     inputcontents += f"""
 fix 7 all balance {gridfreq} {thresh} rcb
 
-fix Colvars all colvars colvars.in
+fix Colvars all colvars colvars.in output out${{stage}}
 
 neigh_modify exclude molecule/intra all every 5 delay 0 check yes
 
