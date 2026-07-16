@@ -92,20 +92,26 @@ processors {px} {py} {pz} grid onelevel
 
 comm_style tiled
 
-fix prop all property/atom i_mol i_moltype d_curv
+variable restart_exists equal is_file(restart.final)
+
+if "${{restart_exists}}" then "read_restart restart.final"
+
+if "${{restart_exists}}" then "fix prop all property/atom i_mol i_moltype d_curv"
 
 """
 
     if datagz==True:
         inputcontents +="""
-variable restart_exists equal is_file(restart.final)
-if "${restart_exists}" then "read_restart restart.final" else "read_data data.lammps.gz fix prop NULL Molecules"
+if "!${restart_exists}" then "fix prop all property/atom i_mol i_moltype d_curv"
+
+if "!${restart_exists}" then "read_data data.lammps.gz fix prop NULL Molecules"
 
 """
     else:
         inputcontents +="""
-variable restart_exists equal is_file(restart.final)
-if "${restart_exists}" then "read_restart restart.final" else "read_data data.lammps fix prop NULL Molecules"
+if "!${restart_exists}" then "fix prop all property/atom i_mol i_moltype d_curv"
+
+if "!${restart_exists}" then "read_data data.lammps fix prop NULL Molecules"
 
 """
 
