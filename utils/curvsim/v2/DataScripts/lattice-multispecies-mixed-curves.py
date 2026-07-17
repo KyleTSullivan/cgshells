@@ -49,7 +49,7 @@ def make_data(simpath):
     r0 = meta['particle']['geometry']['r0']
     allowedattractions = meta['particle']['interactions']['allowedattractions']
     labels = meta['particle']['interactions']['labels']
-    w_average_curves = meta['particle']['geometry']['wavgcurves']
+    num_each_curve = meta['particle']['geometry']['num_each_curve']
     if r0 == "flat":
         k_0 = 0
     kh = meta['particle']['elasticity']['kh']
@@ -104,14 +104,24 @@ def make_data(simpath):
 
     print("...preparing new simulation data")
     sim = Curvamer2D(directory=f"{PROJECT_ROOT}/{simpath}")
+
+    curve_selection_list = np.array([])
+    for index in range(len(num_each_curve)):
+        for times_occured in range(num_each_curve[index]):
+            curve_selection_list = np.append(curve_selection_list, r0[index])
+
+
+    moltype_list = []
     if theta == "random":
         theta = np.pi    # randomnly orient up or down
         for i in range(int(nshells)):
-            indexlist = [i for i in range(len(r0))]
-            chosen_index = random.choices(indexlist, weights=w_average_curves, k=1)
-            chosen_r0 = r0[chosen_index[0]]
-            molindex = chosen_index[0] + 1
+            chosen_index = random.randint(0, (len(curve_selection_list) - 1))
+            chosen_r0 = curve_selection_list[chosen_index]
+            curve_selection_list = np.delete(curve_selection_list, chosen_index, axis=0)
+            r0index = r0.index(chosen_r0)
+            molindex = r0index + 1
             moltype_i = molindex
+            moltype_list.append(moltype_i)
             theta_i = np.random.randint(0,2)*theta
             if chosen_r0 == 'flat':
                 k_0 = 0
@@ -122,6 +132,14 @@ def make_data(simpath):
     else:
         for i in range(int(nshells)):
             sim.make_curvamer(moltype_i,rxlist[i],rylist[i],theta,wx,Nbeads,fraction,t0,k_0,k_i,kh,kckh,kvkh)
+
+
+
+    with open(f"{PROJECT_ROOT}/{simpath}/moltypes.txt", "w") as moltype_save_file:
+        for moltype_1 in moltype_list:
+            moltype_save_file.write(f"{moltype_1}")
+
+
 
     ##### MAKE DATA FILE #####
     print("...making data file")

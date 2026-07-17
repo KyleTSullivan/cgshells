@@ -66,7 +66,7 @@ def extendPattern(pattern, shells):
     return curveserieslist
 
 
-with open('/Users/kaidenboisjolie/Documents/Code/cgshells/jobs/examples/v2/stack-multi-curvetypes-param.yaml', 'r') as file:
+with open('/work/pi_grason_umass_edu/kboisjolie/cgshells/jobs/examples/v2/stack-multi-curvetypes-param.yaml', 'r') as file:
     yaml_data = yaml.safe_load(file)
 
 rm.print_header(version)
@@ -238,8 +238,8 @@ for i in range(len(nshells_list)):
         load_frame = -1    # frame number to load in (not timestep! 0 is initial state; -1 is last completed dump)
 
         ### Computation
-        computer = "local"
-        #computer = "unity"
+        #computer = "local"
+        computer = "unity"
         nnodes = 1
         mem = 5 #GB
         tlim_hrs = 1 

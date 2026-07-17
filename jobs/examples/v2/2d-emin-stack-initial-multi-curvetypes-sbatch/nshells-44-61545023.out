@@ -1,0 +1,130 @@
+Loading python version 3.12.3
+Removing conda version miniforge3-24.7.1
+No conda package cache directories found outside your home directory. To
+prevent conda from filling up your home directory, you can create a new
+directory at `/work/pi_<your_pi_name>/$USER/.conda/pkgs` and reload the module. 
+No conda environment directories found outside your home directory. To prevent
+conda from filling up your home directory, you can create a new directory at
+`/work/pi_<your_pi_name>/$USER/.conda/envs` and reload the module. 
+Loading conda version miniforge3-24.7.1
+Loading libpciaccess version 0.17
+Loading libiconv version 1.17
+Loading xz version 5.4.6
+Loading zlib-ng version 2.1.6
+Loading libxml2 version 2.10.3
+Loading ncurses version 6.5
+Loading hwloc version 2.9.1
+Loading openssl version 3.0.13
+Loading libevent version 2.1.12
+Loading numactl version 2.0.14
+Loading openssh version 9.6p1
+Loading slurm version 23.11.8
+Loading openmpi version 5.0.3
+
+######################################
+######################################
+
+    Coarse-Grained Shell Simulator   
+    
+        Kyle Thomas Sullivan
+       kyltsullivan@umass.edu
+       
+######################################
+######################################
+
+Using curvsim v2
+
+######################################
+Running data/examples/2d/emin/wx-4.900-t0-0.600-Nbeads-15/fraction-0.333/species-1/r0-{'A': 6.5}/sigma-0.25000/kh-100.00000/nshells-44/cg-12
+Run number 1
+Using stack-1species-1k0.py to create data file...
+nshells = 44
+...preparing new simulation data
+...making data file
+Compute time to create data file: 0d - 0hrs 0min 0.09471702575683594sec
+Updating metadata with start time...
+Executing LAMMPS...
+LAMMPS (23 Jun 2022 - Update 2)
+Reading data file ...
+  orthogonal box = (-9.8 -26 -0.5) to (9.8 312 0.5)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1320 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  reading bonds ...
+  3124 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     5 = max # of 1-2 neighbors
+    20 = max # of 1-3 neighbors
+   100 = max # of 1-4 neighbors
+    13 = max # of special neighbors
+  special bonds CPU = 0.004 seconds
+  read_data CPU = 0.053 seconds
+New timer settings: style=normal  mode=nosync  timeout=00:30:00
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:187)
+Generated 0 of 21 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.55
+  ghost atom cutoff = 2.6
+  binsize = 0.775, bins = 26 437 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/expand, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/2d
+      bin: standard
+Setting up cg style minimization ...
+  Unit style    : lj
+  Current step  : 0
+  Walltime left : 0:29:59.98
+Per MPI rank memory allocation (min/avg/max) = 11.63 | 11.63 | 11.63 Mbytes
+   Step         TotEng         KinEng         PotEng         E_pair         E_bond          Temp          Press     
+         0  -97.732113      0             -97.732113     -107.43055      9.6984408      0             -0.068480108  
+       603  -113.95042      0             -113.95042     -119.81961      5.8691856      0             -1.1477369e-06
+Loop time of 0.388928 on 1 procs for 603 steps with 1320 atoms
+
+95.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -97.7321126161845  -113.950422013101  -113.950422013208
+  Force two-norm initial, final = 54.753268 0.00017827683
+  Force max component initial, final = 2.3468592 1.6625458e-05
+  Final line search alpha, max atom move = 1 1.6625458e-05
+  Iterations, force evaluations = 603 1799
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.17339    | 0.17339    | 0.17339    |   0.0 | 44.58
+Bond    | 0.12224    | 0.12224    | 0.12224    |   0.0 | 31.43
+Neigh   | 0.015138   | 0.015138   | 0.015138   |   0.0 |  3.89
+Comm    | 0.0011977  | 0.0011977  | 0.0011977  |   0.0 |  0.31
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0.0071939  | 0.0071939  | 0.0071939  |   0.0 |  1.85
+Other   |            | 0.06977    |            |       | 17.94
+
+Nlocal:           1320 ave        1320 max        1320 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3183 ave        3183 max        3183 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3183
+Ave neighs/atom = 2.4113636
+Ave special neighs/atom = 11.4
+Neighbor list builds = 19
+Dangerous builds = 0
+System init for write_restart ...
+Generated 0 of 21 mixed pair_coeff terms from geometric mixing rule
+Total wall time: 0:00:00
+LAMMPS Runtime: 0.0hrs 0.0min 1.1sec
+Updating metadata with run info ...
+Done.
