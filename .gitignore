@@ -13,7 +13,12 @@ __pycache__/
 *.dump
 *.dump.gz
 
+# slurm
+*.out
+*.sh
+
 # directories
+*sbatch*/
 data/
 tmp/
 jobs/*

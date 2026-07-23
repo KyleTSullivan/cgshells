@@ -75,13 +75,13 @@ def extendPattern(pattern, shells):
             
 
 ##### PATTERNS #####
-dcore = 1['dcore']
-nshells = 50['nshells']
+dcore = 1.0
+nshells = 50
 nshells_list = np.arange(1, nshells+1).tolist()    # independent jobs that run in parallel (must be list)
 curvetypes = {'A': 6.5}
 #curveseries_list = ['A', 'AB', 'ABAB', 'ABABA', 'ABABAB', 'ABABABA'] # manually setting a curveseries. Curveseries tells the curvamer generator which curve types to use in each location along a stack
 curveseries_list = extendPattern('A', nshells_list) # automatically builds a curvseries list from a pattern
-kh_list = [100]['initial_kh']    # jobs that will run in series (must be list)
+kh_list = [100]    # jobs that will run in series (must be list)
 
 jobcounter = 0
 for i in range(len(nshells_list)):   
@@ -223,8 +223,8 @@ for i in range(len(nshells_list)):
 #         load_frame = -1    # frame number to load in (not timestep! 0 is initial state; -1 is last completed dump)
 
         ### Computation
-        computer = "local"
-        #computer = "unity"
+        #computer = "local"
+        computer = "unity"
         nnodes = 1
         mem = 5 #GB
         tlim_hrs = 1 

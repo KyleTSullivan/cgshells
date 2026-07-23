@@ -12,8 +12,8 @@ import shutil
 import subprocess
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
-lmplocal = "/Users/kyle/Documents/Code/lammps-23Jun2022/src/lmp_mpi" 
-lmpunity = "/home/kyltsullivan_umass_edu/lammps-23Jun2022/src/lmp_mpi"
+lmplocal = "/path/to/local/lmp_mpi" 
+lmpunity = "/work/pi_grason_umass_edu/PACKAGES/lammps-23Jun2022/src/lmp_mpi"
 
 from utils.readsim import ReadSim
 
@@ -24,7 +24,7 @@ def cluster_modules(computer):
     if computer == "unity":
         mods = """module load python/3.12.3
 module load conda/latest
-conda activate curvsim3
+conda activate /work/pi_grason_umass_edu/PACKAGES/curvsim3/curvsim3
 module load openmpi/5.0.3
 """
         
@@ -186,7 +186,7 @@ def check_restart(simpath):
             elif stepsrun < float(meta['simulation']['runsteps']):
                 return True
         except:
-            return True
+                return True
 
         
 def print_header(version):
@@ -226,7 +226,9 @@ def run_lmp(simpath,computer,ncpus,screen,stage=1):
         lmpmpi = lmpunity
 
     t1 = time.time()
-    
+
+    #os.environ["LD_LIBRARY_PATH"] = "/modules/spack/packages/linux-ubuntu24.04-x86_64/gcc-13.2.0/openmpi-5.0.3-bj572zbkduba5ueea4uwnhhgbi422h55/lib"
+
     if screen==False:
         run = subprocess.run(["mpirun","-np","{}".format(ncpus),lmpmpi,"-var","stage",f"{stage}","-in","in.lammps","-l",f"log{stage}.lammps","-screen","none"],cwd=f"{PROJECT_ROOT}/{simpath}",check=True)
     else:
@@ -320,6 +322,7 @@ def run_job_cluster(computer,series_simpaths,jobcounter,nnodes,ncpus,mem,partiti
 #SBATCH --constraint=mpi
 #SBATCH -t {tlim_hrs:02d}:{tlim_min:02d}:00 # Job time limit
 #SBATCH -o {JOBDIR}/{JOB}-sbatch/{shname}-%j.out # %j = job ID
+#SBATCH --account=pi_grason_umass_edu
 
 ### load modules
 {cluster_modules(computer)}

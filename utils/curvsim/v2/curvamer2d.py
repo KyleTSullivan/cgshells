@@ -274,7 +274,7 @@ class Curvamer2D:
                 pass
             else:
                 self.atomtypes.append(atype)
-        self.natomtypes = self.nmoltypes * 7 #int(np.size(np.unique(self.atomtypes)))
+        self.natomtypes = self.nmoltypes * 7 #int(np.size(np.unique(self.atomtypes))) #TEMPORARY FIXXX COME BACK TO THIS
         self.nbonds += nbonds
         self.nbondtypes += nbondtypes
         

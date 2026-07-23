@@ -234,8 +234,8 @@ for i in range(len(nshells_list)):
         load_frame = -1    # frame number to load in (not timestep! 0 is initial state; -1 is last completed dump)
 
         ### Computation
-        computer = "local"
-        #computer = "unity"
+        #computer = "local"
+        computer = "unity"
         nnodes = 1
         mem = 5 #GB
         tlim_hrs = 1 
