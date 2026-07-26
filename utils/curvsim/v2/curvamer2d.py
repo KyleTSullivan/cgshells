@@ -264,8 +264,12 @@ class Curvamer2D:
         ### Update attributes
         if moltype in self.moltypes:
             pass
+            print("moltypes already established in self.moltypes: ", moltype)
         else:
+            print("moltypes being added in self.moltypes: ", moltype)
             self.moltypes.append(moltype)
+        
+        print("moltypes: ", self.moltypes)
         self.nmoltypes = np.size(self.moltypes)
         self.nmols += 1
         self.natoms += natoms
