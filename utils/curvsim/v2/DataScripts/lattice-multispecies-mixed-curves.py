@@ -106,9 +106,11 @@ def make_data(simpath):
     sim = Curvamer2D(directory=f"{PROJECT_ROOT}/{simpath}")
 
     curve_selection_list = np.array([])
+    label_selection_list = np.array([])
     for index in range(len(num_each_curve)):
         for times_occured in range(num_each_curve[index]):
             curve_selection_list = np.append(curve_selection_list, r0[index])
+            label_selection_list = np.append(label_selection_list, labels[index])
 
 
     moltype_list = []
@@ -117,11 +119,13 @@ def make_data(simpath):
         for i in range(int(nshells)):
             chosen_index = random.randint(0, (len(curve_selection_list) - 1))
             chosen_r0 = curve_selection_list[chosen_index]
+            chosen_label = label_selection_list[chosen_index]
             curve_selection_list = np.delete(curve_selection_list, chosen_index, axis=0)
-            r0index = r0.index(chosen_r0)
-            molindex = r0index + 1
+            label_index = labels.index(chosen_label)
+            molindex = label_index + 1
             moltype_i = molindex
             moltype_list.append(moltype_i)
+            print(moltype_list, r0, label_index)
             theta_i = np.random.randint(0,2)*theta
             if chosen_r0 == 'flat':
                 k_0 = 0
