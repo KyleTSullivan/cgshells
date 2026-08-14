@@ -1,0 +1,27 @@
+
+#initialization data
+dcore: 1.0
+nshells: 10
+
+initial_kh_preramp: [100]
+subsequent_kh_preramp: [200, 400, 600, 800, 900, 1000]
+
+initial_kh: [1000]
+
+dimension: 2
+t0_settings: 0.6
+wx_settings: 9.8
+sigma_settings: 0.25
+Nbeads_settings: 30
+epsilon_settings: 0.016693349044799993
+nu: 0.3
+
+k0bar: 0.11333333333333333
+deltak0: 0.01319999999735999
+largest_stack: 10
+
+#load data
+subsequent_kh: [1000]
+species_list: ['A', 'B']
+
+patternlist: ['ENUMERATE']

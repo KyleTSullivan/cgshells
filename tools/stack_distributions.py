@@ -46,6 +46,7 @@ rcut = float(sys.argv[2])
 skipsteps = int(sys.argv[3]) # only calculate if timestep is divisible by skipsteps
 txtdir = sys.argv[4] #f"jobs/dynamics2D/distributions"
 ethresh = float(sys.argv[5])
+print(f"datatype of ethresh: {type(ethresh)}")
 
 
 def find_midlayer_pt(result,frame):
@@ -307,9 +308,12 @@ def write_dists(simpath):
     kh = meta['particle']['elasticity']['kh']
     phi = meta['simulation']['phi']
     kT = meta['simulation']['Tstart']
-    damp = meta['simulation']['Tdamp']
+    damp = meta['simulation']['damp']
+
+    
+
     if r0 == "flat":
-        txtfilename = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{np.abs(ethresh):0.3f}.txt"
+        txtfilename = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{float(np.abs(ethresh)):0.3f}.txt"
     else:
         txtfilename = f"wx-{wx:0.3f}-t0-{t0:0.3f}-Nbeads-{Nbeads}-nshells-{nshells}-r0-{r0:0.5f}-sigma-{sigma:0.3f}-kh-{kh:0.3f}-pair_ints-{pair_ints}-soft_ints-{soft_ints}-phi-{phi:0.4f}-kT-{kT:0.4f}-damp-{damp:0.2f}-ethresh-{np.abs(ethresh):0.3f}.txt"
     # loop over all trajectory files in this directory

@@ -39,6 +39,9 @@ class ReadSim:
         # if only one match
         if len(files)==1:
             filename = files[0]
+        elif len(files) == 0:
+            print("no files with this motif")
+            print("choice of files: ", self.files)
 
         # if multiple matches, find latest one
         elif len(files)>1:
@@ -54,8 +57,10 @@ class ReadSim:
             filename = files[tlast]
             
         if return_matches:
+            #print("choice of files: ", self.files)
             return (filename, files)
         else:
+            #print("choice of files: ", self.files)
             return filename
     
     # read log file (works for both energy minimization and MD)
